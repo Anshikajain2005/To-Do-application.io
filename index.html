@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>To-Do Application</title>
+    <style>
+      /* Universal Reset: Ensures consistent styling across different browsers */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* Body Styling: A dark background with a gradient, centered content */
+body {
+    font-family: 'Poppins', sans-serif;
+    background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+    color: #fff;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* Container Styling: Glassmorphism effect with a translucent background */
+.container {
+    width: 400px;
+    padding: 30px;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 15px;
+    box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    text-align: center;
+}
+
+/* Input Field: Neon border and glowing focus effect */
+#projectInput {
+    width: 100%;
+    padding: 15px;
+    margin-bottom: 20px;
+    border: 2px solid rgba(255, 255, 255, 0.2);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    font-size: 16px;
+    outline: none;
+    transition: all 0.3s ease;
+}
+
+#projectInput:focus {
+    border-color: #00ffab;
+    box-shadow: 0 0 10px #00ffab;
+}
+
+/* Button Container: Display buttons horizontally */
+.buttons {
+    display: flex;
+    justify-content: space-around;
+    margin-bottom: 20px;
+}
+
+/* Button Styling: Neon glow with smooth transitions */
+button {
+    width: 60px; /* Make the buttons square */
+    height: 60px;
+    padding: 0;
+    border: none;
+    border-radius: 50%; /* Circular buttons */
+    background-color: rgba(255, 255, 255, 0.1);
+    color: #fff;
+    cursor: pointer;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border: 2px solid transparent;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+button:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 255, 171, 0.8);
+    border-color: #00ffab;
+}
+
+/* Project List Styling: Space between project name and delete button */
+#projectList {
+    margin-top: 20px;
+    text-align: left;
+    max-height: 250px;
+    overflow-y: auto;
+    scrollbar-width: thin;
+    scrollbar-color: #00ffab rgba(255, 255, 255, 0.1);
+}
+
+/* Individual Project Styling: Glass effect with neon hover */
+.project-item {
+    background: rgba(255, 255, 255, 0.1);
+    padding: 12px;
+    margin-bottom: 10px;
+    border-radius: 10px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    transition: background-color 0.3s ease, box-shadow 0.3s ease;
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.project-item:hover {
+    background-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 15px rgba(0, 255, 171, 0.8);
+}
+
+/* Completed projects will have a dimmed neon effect */
+.project-item.completed {
+    text-decoration: line-through;
+    color: rgba(255, 255, 255, 0.6);
+}
+
+/* Deleted projects will have a red neon effect */
+.project-item.deleted {
+    color: #ff4d4d;
+}
+
+/* Custom Scrollbar: Thin, with neon accents */
+#projectList::-webkit-scrollbar {
+    width: 8px;
+}
+
+#projectList::-webkit-scrollbar-thumb {
+    background-color: #00ffab;
+    border-radius: 10px;
+}
+
+#projectList::-webkit-scrollbar-track {
+    background-color: rgba(255, 255, 255, 0.1);
+}
+
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Input field to add a new project -->
+        <input type="text" id="projectInput" placeholder="Enter new project">
+
+        <!-- Button to add a new project -->
+        <button id="addProjectBtn"><img src="imagepage/addicon.png" width="20px"></button>
+    </button>
+
+        <!-- Button to show all projects -->
+        <button id="allProjectsBtn"><img src="imagepage/analysis.png" width="20px"></button>
+       
+
+        <!-- Button to show deleted projects -->
+        <button id="deletedProjectsBtn"><img src="imagepage/delete.png"></button>
+
+        <!-- Button to show completed projects -->
+        <button id="completedProjectsBtn"><img src="imagepage/completed-task.png" width="20px"></button>
+
+        <!-- Display area for projects -->
+        <div id="projectList"></div>
+    </div>
+
+    <script>
+
+
+        // Function to load projects from local storage or initialize an empty array if none exist
+function loadProjects() {
+    return JSON.parse(localStorage.getItem('projects')) || [];
+}
+
+// Function to save projects to local storage
+function saveProjects(projects) {
+    localStorage.setItem('projects', JSON.stringify(projects));
+}
+
+// Function to render projects based on the current filter (all, completed, or deleted)
+function renderProjects(filter) {
+    const projectList = document.getElementById('projectList');
+    projectList.innerHTML = ''; // Clear the current list
+    const projects = loadProjects();
+
+    projects.forEach((project, index) => {
+        if (filter === 'completed' && !project.completed) return;
+        if (filter === 'deleted' && !project.deleted) return;
+        if (filter === 'all' && (project.completed || project.deleted)) return;
+
+        const projectItem = document.createElement('div');
+        projectItem.className = 'project-item';
+        if (project.completed) projectItem.classList.add('completed');
+        if (project.deleted) projectItem.classList.add('deleted');
+
+        // Display the project name
+        const projectText = document.createElement('span');
+        projectText.textContent = project.name;
+        projectItem.appendChild(projectText);
+
+        // Add a delete button to each project
+        const deleteBtn = document.createElement('button');
+        deleteBtn.textContent = 'Delete';
+        deleteBtn.className = 'delete-btn';
+        deleteBtn.addEventListener('click', (e) => {
+            e.stopPropagation(); // Prevent toggling the completed status
+            deleteProject(index, filter);
+        });
+        projectItem.appendChild(deleteBtn);
+
+        // Add an event listener for toggling the project's completed status
+        projectItem.addEventListener('click', () => toggleProjectStatus(index, filter));
+        projectList.appendChild(projectItem);
+    });
+}
+
+// Function to add a new project
+function addProject() {
+    const projectInput = document.getElementById('projectInput');
+    const projectName = projectInput.value.trim();
+    if (projectName) {
+        const projects = loadProjects();
+        projects.push({ name: projectName, completed: false, deleted: false });
+        saveProjects(projects);
+        projectInput.value = ''; // Clear the input field
+        renderProjects('all');
+    }
+}
+
+// Function to toggle a project's status between completed and deleted
+function toggleProjectStatus(index, filter) {
+    const projects = loadProjects();
+    const project = projects[index];
+
+    if (filter === 'all') {
+        project.completed = !project.completed;
+    } else if (filter === 'completed') {
+        project.completed = false;
+        project.deleted = true;
+    } else if (filter === 'deleted') {
+        project.deleted = false;
+    }
+
+    saveProjects(projects);
+    renderProjects(filter);
+}
+
+// Function to delete a project
+function deleteProject(index, filter) {
+    const projects = loadProjects();
+    projects[index].deleted = true; // Mark the project as deleted
+    saveProjects(projects);
+    renderProjects(filter);
+}
+
+// Event listeners for buttons
+document.getElementById('addProjectBtn').addEventListener('click', addProject);
+document.getElementById('allProjectsBtn').addEventListener('click', () => renderProjects('all'));
+document.getElementById('completedProjectsBtn').addEventListener('click', () => renderProjects('completed'));
+document.getElementById('deletedProjectsBtn').addEventListener('click', () => renderProjects('deleted'));
+
+// Initial rendering of all projects
+renderProjects('all');
+
+    </script>
+</body>
+</html>
